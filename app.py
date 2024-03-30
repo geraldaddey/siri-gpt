@@ -45,6 +45,21 @@ chain = (
 )
 
 
+def generate(user_input="Test"):
+    print(f'current memory:\n{memory.load_memory_variables({""})}')
+    if user_input == "":
+        return "End of conversation"
+    inputs = {"input": f"{user_input}"}
+    response = chain.invoke(inputs)
+    memory.save_context(inputs, {"output": response.content})
+    return response.content
+
+
+@app.route("/", methods=["POST"])
+def generate_route():
+    prompt = request.json.get("prompt", "")
+    response = generate(prompt)
+    return response
 
 
 if __name__ == "__main__":
