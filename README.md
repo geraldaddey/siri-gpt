@@ -1,5 +1,3 @@
-
-
 <div align="center">
     <h1>
         <img src="https://github.com/geraldddey/siri-gpt/blob/main/assets/icon.png?raw=true" width="200" height="200">
@@ -27,5 +25,5 @@ Siri-GPT is an Apple shortcut that provides access to locally running Large Lang
     ```bash
     python3 app.py
     ```
-3. On your Apple device, download the shortcut from [here](https://www.icloud.com/shortcuts/3bf9c6400e5049dd81b2df1e16754d3a).
+3. On your Apple device, download the shortcut from [here](https://www.icloud.com/shortcuts/ce25a5f98e6345e8896744eb811997aa).
 4. Run the shortcut through Siri or the shortcut UI. The first time you run the shortcut, you will be asked to enter your ip address and the port number.
