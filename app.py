@@ -30,3 +30,22 @@ prompt = ChatPromptTemplate.from_messages(
         ("human", "{input}"),
     ]
 )
+
+
+# define memory type
+memory = ConversationBufferWindowMemory(k=5, return_messages=True)
+
+# define the chain
+chain = (
+    RunnablePassthrough.assign(
+        history=RunnableLambda(memory.load_memory_variables) | itemgetter("history")
+    )
+    | prompt
+    | model
+)
+
+
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0")
