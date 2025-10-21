@@ -1,3 +1,4 @@
+import logging
 from flask import Flask, request, jsonify
 
 from operator import itemgetter
@@ -7,15 +8,19 @@ from langchain_core.runnables import RunnableLambda, RunnablePassthrough
 from langchain_openai import ChatOpenAI
 
 import requests
+from config import OLLAMA_BASE_URL, OLLAMA_MODEL, OLLAMA_API_KEY
 
 app = Flask(__name__)
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # (default: mistral:instruct)
 model = ChatOpenAI(
     temperature=0,
-    model_name="mistral:instruct",
-    openai_api_base="http://localhost:11434/v1",
-    openai_api_key="insert your api key  here",
+    model_name=OLLAMA_MODEL,
+    openai_api_base=OLLAMA_BASE_URL,
+    openai_api_key=OLLAMA_API_KEY,
     max_tokens=80,
 )
 
@@ -45,21 +50,35 @@ chain = (
 )
 
 
-def generate(user_input="Test"):
-    print(f'current memory:\n{memory.load_memory_variables({""})}')
-    if user_input == "":
+def generate(user_input: str = "") -> str:
+    logging.info(f'Current memory: {memory.load_memory_variables({})}')
+    if not user_input:
         return "End of conversation"
-    inputs = {"input": f"{user_input}"}
-    response = chain.invoke(inputs)
-    memory.save_context(inputs, {"output": response.content})
-    return response.content
+    try:
+        inputs = {"input": user_input}
+        response = chain.invoke(inputs)
+        memory.save_context(inputs, {"output": response.content})
+        return response.content
+    except Exception as e:
+        logging.error(f"Error during LLM generation: {e}")
+        return "An error occurred while generating the response."
 
 
 @app.route("/", methods=["POST"])
 def generate_route():
-    prompt = request.json.get("prompt", "")
-    response = generate(prompt)
-    return response
+    if not request.json or "prompt" not in request.json:
+        logging.warning("Bad request: 'prompt' missing from JSON payload.")
+        return jsonify({"error": "Bad Request: 'prompt' field is required."}), 400
+    
+    user_prompt = request.json.get("prompt", "")
+    logging.info(f"Received prompt: {user_prompt}")
+    
+    response_content = generate(user_prompt)
+    
+    if "An error occurred" in response_content:
+        return jsonify({"error": response_content}), 500
+    
+    return jsonify({"response": response_content})
 
 
 if __name__ == "__main__":
